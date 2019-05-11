@@ -1,4 +1,3 @@
-# 
 library(tidyverse)
 
 dat <- read_csv("./data/example.csv")
