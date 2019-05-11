@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+</head>
+<style type="text/css" media="all">
+body {
+  font: 10px sans-serif;
+}
+
+.bar rect {
+  shape-rendering: crispEdges;
+}
+
+.bar text {
+  fill: #999999;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+#status{
+  font-size: 25px;
+  color: blue;
+}
+</style>
+<body>
+  <div id="status"></div>
+  <h1>Data</h1>
+  <canvas id="canvas"></canvas>
+  <h1>Histogram</h1>
+</body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script charset="utf-8">
+  var canvas = document.getElementById("canvas");
+  var ctx = canvas.getContext("2d");
+
+  //set canvas size
+  canvas.width = window.innerWidth;
+  canvas.height = 400;
+
+
+  //amount of runs of simulation
+  var runs = 10000;
+
+  // dynamic arrays
+  var rate_r = [1]
+  var rate_f = [1]
+
+  // dynamic arrays to store the values 
+  var frate_r = []
+  var frate_f = []
+
+
+  var time = new Date()
+
+  for (var i = 1; i < runs; i++){
+
+    //define amount of years
+    var year  = 10;
+
+    //reset rate_r
+    rate_r = [0.05]
+    //reset rate_f
+    rate_f = [0.2]
+
+    for (var j = 1; j < year; j++){
+
+      //get random_r and push to array
+      rate_r.push((Math.random()*0.4+0.98) * rate_r[j-1])
+
+      //get random_f and push to array
+      rate_f.push((Math.random()*0.2+0.99) * rate_f[j-1])
+    }
+
+    // get the last value of the year and push it to the list
+    frate_r.push(rate_r[year-1])
+    frate_f.push(rate_f[year-1])
+  }
+
+  for (var i = 0; i < frate_r.length; i++){
+    //draw circles
+
+    offset_r = 3200; // this is an arbitrary value so it looks ok
+    offset_f = 3000; // this is an arbitrary value so it looks ok
+
+    drawPointy(frate_r[i]*offset_r, 200);
+    //draw frate_f
+    drawPointy(frate_f[i]*offset_f, 300);
+  }
+
+  frate_r = frate_r.sort()
+
+  document.getElementById("status").innerHTML = "Examples: " + runs + " Execution Time (ms): " + (new Date() - time);
+
+  function drawPointy(x, y){
+   var pointSize = 2; // size of ze point
+    ctx.fillStyle = "#ff2626"; // Red color
+    ctx.beginPath(); //Start path
+    ctx.arc(x, y, pointSize, 0, Math.PI * 2, true); //draw circle
+    ctx.fill();  //close path and fill
+  }
+  
+</script>
+  <script>	
+    var color = "steelblue";
+
+// Generate a 1000 data points using normal distribution with mean=20, deviation=5
+var values = d3.range(1000).map(d3.random.normal(20, 5));
+
+// A formatter for counts.
+var formatCount = d3.format(",.0f");
+
+var margin = {top: 20, right: 30, bottom: 30, left: 30},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var max = d3.max(values);
+var min = d3.min(values);
+var x = d3.scale.linear()
+      .domain([min, max])
+      .range([0, width]);
+
+// Generate a histogram using twenty uniformly-spaced bins.
+var data = d3.layout.histogram()
+    .bins(x.ticks(20))
+    (values);
+
+var yMax = d3.max(data, function(d){return d.length});
+var yMin = d3.min(data, function(d){return d.length});
+var colorScale = d3.scale.linear()
+            .domain([yMin, yMax])
+            .range([d3.rgb(color).brighter(), d3.rgb(color).darker()]);
+
+var y = d3.scale.linear()
+    .domain([0, yMax])
+    .range([height, 0]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var bar = svg.selectAll(".bar")
+    .data(data)
+  .enter().append("g")
+    .attr("class", "bar")
+    .attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; });
+
+bar.append("rect")
+    .attr("x", 1)
+    .attr("width", (x(data[0].dx) - x(0)) - 1)
+    .attr("height", function(d) { return height - y(d.y); })
+    .attr("fill", function(d) { return colorScale(d.y) });
+
+bar.append("text")
+    .attr("dy", ".75em")
+    .attr("y", -12)
+    .attr("x", (x(data[0].dx) - x(0)) / 2)
+    .attr("text-anchor", "middle")
+    .text(function(d) { return formatCount(d.y); });
+
+svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis);
+
+/*
+* Adding refresh method to reload new data
+*/
+function refresh(values){
+  // var values = d3.range(1000).map(d3.random.normal(20, 5));
+  var data = d3.layout.histogram()
+    .bins(x.ticks(20))
+    (values);
+
+  // Reset y domain using new data
+  var yMax = d3.max(data, function(d){return d.length});
+  var yMin = d3.min(data, function(d){return d.length});
+  y.domain([0, yMax]);
+  var colorScale = d3.scale.linear()
+              .domain([yMin, yMax])
+              .range([d3.rgb(color).brighter(), d3.rgb(color).darker()]);
+
+  var bar = svg.selectAll(".bar").data(data);
+
+  // Remove object with data
+  bar.exit().remove();
+
+  bar.transition()
+    .duration(1000)
+    .attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; });
+
+  bar.select("rect")
+      .transition()
+      .duration(1000)
+      .attr("height", function(d) { return height - y(d.y); })
+      .attr("fill", function(d) { return colorScale(d.y) });
+
+  bar.select("text")
+      .transition()
+      .duration(1000)
+      .text(function(d) { return formatCount(d.y); });
+
+}
+
+// Calling refresh repeatedly.
+setInterval(function() {
+  var values = d3.range(1000).map(d3.random.normal(20, 5));
+  refresh(values);
+}, 2000);
+  </script>
+
+</html>
