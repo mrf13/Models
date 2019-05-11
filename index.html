@@ -6,6 +6,9 @@
   </head>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
   <style type="text/css" media="all">
+body{
+  margin-bottom: 300px;
+}
 .bar rect {
   shape-rendering: crispEdges;
 }
@@ -27,7 +30,7 @@
   <body>
     <div class="container">
       <div class="row text-center my-2">
-	<div class="col-md display-3"> Models</div>
+	<div class="col-md display-4"> Models</div>
       </div>
       <div class="row justify-content-center">
 	<div class="col-md-3">
@@ -53,16 +56,16 @@
 	  <div id="status"></div>
 	</div>
       </div>
-      <div class="row my-3">
+      <div class="row">
 	<div class="col-md">
-    <h1>Data</h1>
-    <canvas id="canvas"></canvas>
+	  <h1>Histogram</h1>
+	  <div id="histogram"></div>
 	</div>
       </div>
-      <div class="row">
-        <div class="col-md">
-        <h1>Histogram</h1>
-	<div id="histogram"></div>
+      <div class="row my-3">
+	<div class="col-md">
+	  <h1>Data</h1>
+	  <canvas id="canvas"></canvas>
 	</div>
       </div>
     </div>
@@ -76,8 +79,8 @@
   var ctx = canvas.getContext("2d");
 
   //set canvas size
-  canvas.width = window.innerWidth;
-  canvas.height = 300;
+  canvas.width = 1300;
+  canvas.height = 150;
 
   $(document).ready(function(){
   $("#update_model_button").click()
@@ -144,15 +147,16 @@ function runModel(_runs, _years, _rate_r, _rate_f){
     offset_r = 1200; // this is an arbitrary value so it looks ok
     offset_f = 1500; // this is an arbitrary value so it looks ok
 
-    drawPointy(frate_r[i]*offset_r, 100);
+    drawPointy(frate_r[i]*offset_r, 50);
     //draw frate_f
-    drawPointy(frate_f[i]*offset_f, 200);
+    drawPointy(frate_f[i]*offset_f, 100);
   }
 
   frate_r = frate_r.sort()
 
   document.getElementById("status").innerHTML = "Runs: " + _runs + " Execution Time (ms): " + (new Date() - time);
 
+  makeHistogram(frate_r)
   refresh(frate_r)
   console.log(frate_r[0])
   console.log(frate_r[frate_r.length-1])
@@ -166,109 +170,123 @@ function drawPointy(x, y){
 }
   </script>
   <script>
-    var color = "steelblue";
 
-// Generate a 1000 data points using normal distribution with mean=20, deviation=5
-var values = [0.074, 0.6];
+    var x= 0;
+    var y= 0;
+    var color = "lightgreen";
+    var svg;
+    var height= 0;
+      // A formatter for counts.
+      var formatCount = d3.format(",.0f");
+    function makeHistogram(_values){
 
-// A formatter for counts.
-var formatCount = d3.format(",.0f");
+      // Generate a 1000 data points using normal distribution with mean=20, deviation=5
+      var values = [_values[0], _values[_values.length-1]];
 
-var margin = {top: 20, right: 30, bottom: 30, left: 30},
-  width = 960 - margin.left - margin.right,
-  height = 500 - margin.top - margin.bottom;
-var max = d3.max(values); var min = d3.min(values);
-var x = d3.scale.linear()
-  .domain([min, max])
-  .range([0, width]);
 
-// Generate a histogram using twenty uniformly-spaced bins.
-var data = d3.layout.histogram()
-  .bins(x.ticks(20))
-(values);
+      var margin = {top: 20, right: 30, bottom: 30, left: 30}
+      var width = 900 - margin.left - margin.right
+      height = 400 - margin.top - margin.bottom;
 
-var yMax = d3.max(data, function(d){return d.length});
-var yMin = d3.min(data, function(d){return d.length});
-var colorScale = d3.scale.linear()
-  .domain([yMin, yMax])
-  .range([d3.rgb(color).brighter(), d3.rgb(color).darker()]);
+      var max = d3.max(values); var min = d3.min(values);
 
-var y = d3.scale.linear()
-  .domain([0, yMax])
-  .range([height, 0]);
+      x = d3.scale.linear()
+	.domain([min, max])
+	.range([0, width]);
 
-var xAxis = d3.svg.axis()
-  .scale(x)
-  .orient("bottom");
+      // Generate a histogram using twenty uniformly-spaced bins.
+      var data = d3.layout.histogram()
+	.bins(x.ticks(20))
+      (values);
 
-var svg = d3.select("#histogram").append("svg")
-  .attr("width", width + margin.left + margin.right)
-  .attr("height", height + margin.top + margin.bottom)
-  .append("g")
-  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+      var yMax = d3.max(data, function(d){return d.length});
+      var yMin = d3.min(data, function(d){return d.length});
 
-var bar = svg.selectAll(".bar")
-  .data(data)
-  .enter().append("g")
-  .attr("class", "bar")
-  .attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; });
+      var colorScale = d3.scale.linear()
+	.domain([yMin, yMax])
+	.range([d3.rgb(color).brighter(), d3.rgb(color).darker()]);
 
-bar.append("rect")
-  .attr("x", 1)
-  .attr("width", (x(data[0].dx) - x(0)) - 1)
-  .attr("height", function(d) { return height - y(d.y); })
-  .attr("fill", function(d) { return colorScale(d.y) });
+      y = d3.scale.linear()
+	.domain([0, yMax])
+	.range([height, 0]);
 
-bar.append("text")
-  .attr("dy", ".75em")
-  .attr("y", -12)
-  .attr("x", (x(data[0].dx) - x(0)) / 2)
-  .attr("text-anchor", "middle")
-  .text(function(d) { return formatCount(d.y); });
+      var xAxis = d3.svg.axis()
+	.scale(x)
+	.orient("bottom");
 
-svg.append("g")
-  .attr("class", "x axis")
-  .attr("transform", "translate(0," + height + ")")
-  .call(xAxis);
+      //reset historgram
+      $("#histogram")[0].innerHTML = ""
+      svg = d3.select("#histogram").append("svg")
+	.attr("width", width + margin.left + margin.right)
+	.attr("height", height + margin.top + margin.bottom)
+	.append("g")
+	.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      var bar = svg.selectAll(".bar")
+	.data(data)
+	.enter().append("g")
+	.attr("class", "bar")
+	.attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; });
+
+      bar.append("rect")
+	.attr("x", 1)
+	.attr("width", (x(data[0].dx) - x(0)) - 1)
+	.attr("height", function(d) { return height - y(d.y); })
+	.attr("fill", function(d) { return colorScale(d.y) });
+
+      bar.append("text")
+	.attr("dy", ".75em")
+	.attr("y", -12)
+	.attr("x", (x(data[0].dx) - x(0)) / 2)
+	.attr("text-anchor", "middle")
+	.text(function(d) { return formatCount(d.y); });
+
+      svg.append("g")
+	.attr("class", "x axis")
+	.attr("transform", "translate(0," + height + ")")
+	.call(xAxis);
+    }
 
 /*
- * Adding refresh method to reload new data
- */
-function refresh(values){
-  // var values = d3.range(1000).map(d3.random.normal(20, 5));
-  var data = d3.layout.histogram()
-    .bins(x.ticks(20))
-  (values);
+  * Adding refresh method to reload new data
+  */
+  function refresh(values){
 
-  // Reset y domain using new data
-  var yMax = d3.max(data, function(d){return d.length});
-  var yMin = d3.min(data, function(d){return d.length});
-  y.domain([0, yMax]);
-  var colorScale = d3.scale.linear()
-    .domain([yMin, yMax])
-    .range([d3.rgb(color).brighter(), d3.rgb(color).darker()]);
+    var data = d3.layout.histogram()
+      .bins(x.ticks(20))
+    (values);
 
-  var bar = svg.selectAll(".bar").data(data);
+    // Reset y domain using new data
+    var yMax = d3.max(data, function(d){return d.length});
+    var yMin = d3.min(data, function(d){return d.length});
 
-  // Remove object with data
-  bar.exit().remove();
+    y.domain([0, yMax]);
 
-  bar.transition()
-    .duration(1000)
-    .attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; });
+    var colorScale = d3.scale.linear()
+      .domain([yMin, yMax])
+      .range([d3.rgb(color).brighter(), d3.rgb(color).darker()]);
 
-  bar.select("rect")
-    .transition()
-    .duration(1000)
-    .attr("height", function(d) { return height - y(d.y); })
-    .attr("fill", function(d) { return colorScale(d.y) });
+    var bar = svg.selectAll(".bar").data(data);
 
-  bar.select("text")
-    .transition()
-    .duration(1000)
-    .text(function(d) { return formatCount(d.y); });
+    // Remove object with data
+    bar.exit().remove();
 
-}
+    bar.transition()
+      .duration(1000)
+      .attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; });
+
+    bar.select("rect")
+      .transition()
+      .duration(1000)
+      .attr("height", function(d) { return height - y(d.y); })
+      .attr("fill", function(d) { return colorScale(d.y) });
+
+    bar.select("text")
+      .transition()
+      .duration(1000)
+      .text(function(d) { return formatCount(d.y); });
+
+  }
   </script>
 
 </html>
