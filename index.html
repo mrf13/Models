@@ -1,78 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title></title>
-</head>
-<style type="text/css" media="all">
-body {
-  font: 10px sans-serif;
-}
-
+  <head>
+    <meta charset="UTF-8">
+    <title></title>
+  </head>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <style type="text/css" media="all">
 .bar rect {
   shape-rendering: crispEdges;
 }
 
-.bar text {
-  fill: #999999;
-}
+  .bar text {
+    fill: #999999;
+  }
 
-.axis path, .axis line {
-  fill: none;
-  stroke: #000;
-  shape-rendering: crispEdges;
-}
-#status{
-  font-size: 25px;
-  color: blue;
-}
-</style>
-<body>
-  <div id="status"></div>
-  <div class="values">
-    <input type="text" name="runs" id="runs" value="10000" placeholder="Runs" />
-    <input type="text" name="year" id="years" value="10" placeholder="Years" />
-    <input type="text" name="rate_r" id="rate_r" value="0.05" placeholder="Rate R" />
-    <input type="text" name="rate_f" id="rate_f" value="0.2" placeholder="Rate F" />
-    <button id="update_model_button">Update Memes</button>
-  </div>
-  <h1>Data</h1>
-  <canvas id="canvas"></canvas>
-  <h1>Histogram</h1>
-</body>
-<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-<script src="http://d3js.org/d3.v3.min.js"></script>
-<script charset="utf-8">
-  var canvas = document.getElementById("canvas");
+  .axis path, .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+  }
+  #status{
+    font-size: 25px;
+    color: blue;
+  }
+  </style>
+  <body>
+    <div class="container">
+      <div class="row text-center my-2">
+	<div class="col-md display-3"> Models</div>
+      </div>
+      <div class="row justify-content-center">
+	<div class="col-md-3">
+	  <label for="">Runs</label>
+	  <input class="form-control" type="text" name="runs" id="runs" value="10000" placeholder="Runs" />
+	  <label for="years">Years</label>
+	  <input class="form-control"type="text" name="year" id="years" value="10" placeholder="Years" />
+	</div>
+	<div class="col-md-3">
+	  <label for="rate_r">Rate R</label>
+	  <input class="form-control"type="text" name="rate_r" id="rate_r" value="0.05" placeholder="Rate R" />
+	  <label for="rate_f">Rate F</label>
+	  <input class="form-control" type="text" name="rate_f" id="rate_f" value="0.2" placeholder="Rate F" />
+	</div>
+      </div>
+      <div class="row py-2 justify-content-center">
+	<div class="col-md-6">
+	  <button class="btn btn-primary form-control" id="update_model_button">Update Memes</button>
+	</div>
+      </div>
+      <div class="row my-3">
+	<div class="col-md">
+	  <div id="status"></div>
+	</div>
+      </div>
+      <div class="row my-3">
+	<div class="col-md">
+    <h1>Data</h1>
+    <canvas id="canvas"></canvas>
+	</div>
+      </div>
+      <div class="row">
+        <div class="col-md">
+        <h1>Histogram</h1>
+	<div id="histogram"></div>
+	</div>
+      </div>
+    </div>
+  </body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script charset="utf-8">
+    var canvas = document.getElementById("canvas");
   var ctx = canvas.getContext("2d");
 
   //set canvas size
   canvas.width = window.innerWidth;
-  canvas.height = 400;
+  canvas.height = 300;
 
   $(document).ready(function(){
   $("#update_model_button").click()
   })
 
-</script>
+  </script>
 
   <script>
     //functions and stuff 
-  $("#update_model_button").click(function(){
-  var runs =  $("#runs").val()
-  var years = $("#years").val()
-  var rate_r = $("#rate_r").val()
-  var rate_f = $("#rate_f").val()
-  runModel(runs, years, rate_r, rate_f)
-  })
+    $("#update_model_button").click(function(){
+      var runs =  $("#runs").val()
+      var years = $("#years").val()
+      var rate_r = $("#rate_r").val()
+      var rate_f = $("#rate_f").val()
+      runModel(runs, years, rate_r, rate_f)
+    })
 
- // Params:
- // _runs: amount of runs of simulation
- // _years: years of simulation
- // _rate_r: rate_r  of simulation
- // _rate_f: rate_f  of simulation
+// Params:
+// _runs: amount of runs of simulation
+// _years: years of simulation
+// _rate_r: rate_r  of simulation
+// _rate_f: rate_f  of simulation
 
-  function runModel(_runs, _years, _rate_r, _rate_f){
+function runModel(_runs, _years, _rate_r, _rate_f){
 
   //clean canvas 
   ctx.fillStyle = "white"
@@ -112,27 +141,27 @@ body {
   for (var i = 0; i < frate_r.length; i++){
     //draw circles
 
-    offset_r = 3200; // this is an arbitrary value so it looks ok
-    offset_f = 3000; // this is an arbitrary value so it looks ok
+    offset_r = 1200; // this is an arbitrary value so it looks ok
+    offset_f = 1500; // this is an arbitrary value so it looks ok
 
-    drawPointy(frate_r[i]*offset_r, 200);
+    drawPointy(frate_r[i]*offset_r, 100);
     //draw frate_f
-    drawPointy(frate_f[i]*offset_f, 300);
+    drawPointy(frate_f[i]*offset_f, 200);
   }
 
   frate_r = frate_r.sort()
 
-  document.getElementById("status").innerHTML = "Examples: " + _runs + " Execution Time (ms): " + (new Date() - time);
+  document.getElementById("status").innerHTML = "Runs: " + _runs + " Execution Time (ms): " + (new Date() - time);
 
-  }
-  function drawPointy(x, y){
-   var pointSize = 2; // size of ze point
-    ctx.fillStyle = "#ff2626"; // Red color
-    ctx.beginPath(); //Start path
-    ctx.arc(x, y, pointSize, 0, Math.PI * 2, true); //draw circle
-    ctx.fill();  //close path and fill
-  }
-</script>
+}
+function drawPointy(x, y){
+  var pointSize = 2; // size of ze point
+  ctx.fillStyle = "#ff2626"; // Red color
+  ctx.beginPath(); //Start path
+  ctx.arc(x, y, pointSize, 0, Math.PI * 2, true); //draw circle
+  ctx.fill();  //close path and fill
+}
+  </script>
   <script>
     var color = "steelblue";
 
@@ -143,80 +172,80 @@ var values = d3.range(1000).map(d3.random.normal(20, 5));
 var formatCount = d3.format(",.0f");
 
 var margin = {top: 20, right: 30, bottom: 30, left: 30},
-    width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+  width = 960 - margin.left - margin.right,
+  height = 500 - margin.top - margin.bottom;
 
 var max = d3.max(values);
 var min = d3.min(values);
 var x = d3.scale.linear()
-      .domain([min, max])
-      .range([0, width]);
+  .domain([min, max])
+  .range([0, width]);
 
 // Generate a histogram using twenty uniformly-spaced bins.
 var data = d3.layout.histogram()
-    .bins(x.ticks(20))
-    (values);
+  .bins(x.ticks(20))
+(values);
 
 var yMax = d3.max(data, function(d){return d.length});
 var yMin = d3.min(data, function(d){return d.length});
 var colorScale = d3.scale.linear()
-            .domain([yMin, yMax])
-            .range([d3.rgb(color).brighter(), d3.rgb(color).darker()]);
+  .domain([yMin, yMax])
+  .range([d3.rgb(color).brighter(), d3.rgb(color).darker()]);
 
 var y = d3.scale.linear()
-    .domain([0, yMax])
-    .range([height, 0]);
+  .domain([0, yMax])
+  .range([height, 0]);
 
 var xAxis = d3.svg.axis()
-    .scale(x)
-    .orient("bottom");
+  .scale(x)
+  .orient("bottom");
 
-var svg = d3.select("body").append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
+var svg = d3.select("#histogram").append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
   .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 var bar = svg.selectAll(".bar")
-    .data(data)
+  .data(data)
   .enter().append("g")
-    .attr("class", "bar")
-    .attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; });
+  .attr("class", "bar")
+  .attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; });
 
 bar.append("rect")
-    .attr("x", 1)
-    .attr("width", (x(data[0].dx) - x(0)) - 1)
-    .attr("height", function(d) { return height - y(d.y); })
-    .attr("fill", function(d) { return colorScale(d.y) });
+  .attr("x", 1)
+  .attr("width", (x(data[0].dx) - x(0)) - 1)
+  .attr("height", function(d) { return height - y(d.y); })
+  .attr("fill", function(d) { return colorScale(d.y) });
 
 bar.append("text")
-    .attr("dy", ".75em")
-    .attr("y", -12)
-    .attr("x", (x(data[0].dx) - x(0)) / 2)
-    .attr("text-anchor", "middle")
-    .text(function(d) { return formatCount(d.y); });
+  .attr("dy", ".75em")
+  .attr("y", -12)
+  .attr("x", (x(data[0].dx) - x(0)) / 2)
+  .attr("text-anchor", "middle")
+  .text(function(d) { return formatCount(d.y); });
 
 svg.append("g")
-    .attr("class", "x axis")
-    .attr("transform", "translate(0," + height + ")")
-    .call(xAxis);
+  .attr("class", "x axis")
+  .attr("transform", "translate(0," + height + ")")
+  .call(xAxis);
 
 /*
-* Adding refresh method to reload new data
-*/
+ * Adding refresh method to reload new data
+ */
 function refresh(values){
   // var values = d3.range(1000).map(d3.random.normal(20, 5));
   var data = d3.layout.histogram()
     .bins(x.ticks(20))
-    (values);
+  (values);
 
   // Reset y domain using new data
   var yMax = d3.max(data, function(d){return d.length});
   var yMin = d3.min(data, function(d){return d.length});
   y.domain([0, yMax]);
   var colorScale = d3.scale.linear()
-              .domain([yMin, yMax])
-              .range([d3.rgb(color).brighter(), d3.rgb(color).darker()]);
+    .domain([yMin, yMax])
+    .range([d3.rgb(color).brighter(), d3.rgb(color).darker()]);
 
   var bar = svg.selectAll(".bar").data(data);
 
@@ -228,15 +257,15 @@ function refresh(values){
     .attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; });
 
   bar.select("rect")
-      .transition()
-      .duration(1000)
-      .attr("height", function(d) { return height - y(d.y); })
-      .attr("fill", function(d) { return colorScale(d.y) });
+    .transition()
+    .duration(1000)
+    .attr("height", function(d) { return height - y(d.y); })
+    .attr("fill", function(d) { return colorScale(d.y) });
 
   bar.select("text")
-      .transition()
-      .duration(1000)
-      .text(function(d) { return formatCount(d.y); });
+    .transition()
+    .duration(1000)
+    .text(function(d) { return formatCount(d.y); });
 
 }
 
