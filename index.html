@@ -29,10 +29,18 @@ body {
 </style>
 <body>
   <div id="status"></div>
+  <div class="values">
+    <input type="text" name="runs" id="runs" value="10000" placeholder="Runs" />
+    <input type="text" name="year" id="years" value="10" placeholder="Years" />
+    <input type="text" name="rate_r" id="rate_r" value="0.05" placeholder="Rate R" />
+    <input type="text" name="rate_f" id="rate_f" value="0.2" placeholder="Rate F" />
+    <button id="update_model_button">Update Memes</button>
+  </div>
   <h1>Data</h1>
   <canvas id="canvas"></canvas>
   <h1>Histogram</h1>
 </body>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script charset="utf-8">
   var canvas = document.getElementById("canvas");
@@ -42,9 +50,33 @@ body {
   canvas.width = window.innerWidth;
   canvas.height = 400;
 
+  $(document).ready(function(){
+  $("#update_model_button").click()
+  })
 
-  //amount of runs of simulation
-  var runs = 10000;
+</script>
+
+  <script>
+    //functions and stuff 
+  $("#update_model_button").click(function(){
+  var runs =  $("#runs").val()
+  var years = $("#years").val()
+  var rate_r = $("#rate_r").val()
+  var rate_f = $("#rate_f").val()
+  runModel(runs, years, rate_r, rate_f)
+  })
+
+ // Params:
+ // _runs: amount of runs of simulation
+ // _years: years of simulation
+ // _rate_r: rate_r  of simulation
+ // _rate_f: rate_f  of simulation
+
+  function runModel(_runs, _years, _rate_r, _rate_f){
+
+  //clean canvas 
+  ctx.fillStyle = "white"
+  ctx.fillRect(0,0, canvas.width, canvas.height);
 
   // dynamic arrays
   var rate_r = [1]
@@ -54,20 +86,16 @@ body {
   var frate_r = []
   var frate_f = []
 
-
   var time = new Date()
 
-  for (var i = 1; i < runs; i++){
-
-    //define amount of years
-    var year  = 10;
+  for (var i = 1; i < _runs; i++){
 
     //reset rate_r
-    rate_r = [0.05]
+    rate_r = [_rate_r]
     //reset rate_f
-    rate_f = [0.2]
+    rate_f = [_rate_f]
 
-    for (var j = 1; j < year; j++){
+    for (var j = 1; j < _years; j++){
 
       //get random_r and push to array
       rate_r.push((Math.random()*0.4+0.98) * rate_r[j-1])
@@ -77,8 +105,8 @@ body {
     }
 
     // get the last value of the year and push it to the list
-    frate_r.push(rate_r[year-1])
-    frate_f.push(rate_f[year-1])
+    frate_r.push(rate_r[_years-1])
+    frate_f.push(rate_f[_years-1])
   }
 
   for (var i = 0; i < frate_r.length; i++){
@@ -94,8 +122,9 @@ body {
 
   frate_r = frate_r.sort()
 
-  document.getElementById("status").innerHTML = "Examples: " + runs + " Execution Time (ms): " + (new Date() - time);
+  document.getElementById("status").innerHTML = "Examples: " + _runs + " Execution Time (ms): " + (new Date() - time);
 
+  }
   function drawPointy(x, y){
    var pointSize = 2; // size of ze point
     ctx.fillStyle = "#ff2626"; // Red color
@@ -103,9 +132,8 @@ body {
     ctx.arc(x, y, pointSize, 0, Math.PI * 2, true); //draw circle
     ctx.fill();  //close path and fill
   }
-  
 </script>
-  <script>	
+  <script>
     var color = "steelblue";
 
 // Generate a 1000 data points using normal distribution with mean=20, deviation=5
